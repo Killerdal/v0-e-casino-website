@@ -1,53 +1,34 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { SidebarProvider } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
-import { CryptoDepositReal } from "@/components/crypto-deposit-real"
+import { CryptoDeposit } from "@/components/crypto-deposit"
 import { Dashboard } from "@/components/dashboard"
 import { Games } from "@/components/games"
 import { Transactions } from "@/components/transactions"
 import { Profile } from "@/components/profile"
 import { WalletConnect } from "@/components/wallet-connect"
-import { AuthPage } from "@/components/auth-page"
-import { SettingsPage } from "@/components/settings-page"
-import { SportsBetting } from "@/components/sports-betting"
-import { BonusesPage } from "@/components/bonuses-page"
-import { AuthProvider, useAuth } from "@/lib/auth-context"
+import { LoginPage } from "@/components/login-page"
 import { Button } from "@/components/ui/button"
 import { Skull, LogOut } from "lucide-react"
+import { SportsBetting } from "@/components/sports-betting"
 
-function CasinoAppContent() {
+export default function CasinoApp() {
   const [activeSection, setActiveSection] = useState("dashboard")
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [connectedWallet, setConnectedWallet] = useState<string | null>(null)
-  const { user, logout, isLoading } = useAuth()
-
-  // Debug logging
-  useEffect(() => {
-    console.log("=== APP STATE ===")
-    console.log("User:", user)
-    console.log("Is loading:", isLoading)
-    console.log("Active section:", activeSection)
-  }, [user, isLoading, activeSection])
+  const [userBalance, setUserBalance] = useState(2350.75)
 
   const renderContent = () => {
-    console.log("Rendering content for section:", activeSection)
-
     switch (activeSection) {
       case "dashboard":
-        return <Dashboard userBalance={user?.balance || 0} />
+        return <Dashboard userBalance={userBalance} />
       case "deposit":
-        return <CryptoDepositReal />
+        return <CryptoDeposit onDepositSuccess={(amount) => setUserBalance((prev) => prev + amount)} />
       case "games":
-        return (
-          <Games
-            userBalance={user?.balance || 0}
-            onBalanceChange={(newBalance) => {
-              console.log("Balance change requested:", newBalance)
-            }}
-          />
-        )
+        return <Games userBalance={userBalance} onBalanceChange={setUserBalance} />
       case "transactions":
         return <Transactions />
       case "profile":
@@ -55,76 +36,30 @@ function CasinoAppContent() {
       case "wallet":
         return <WalletConnect onWalletConnect={setConnectedWallet} connectedWallet={connectedWallet} />
       case "sports":
-        return (
-          <SportsBetting
-            userBalance={user?.balance || 0}
-            onBalanceChange={(newBalance) => {
-              console.log("Balance change requested:", newBalance)
-            }}
-          />
-        )
-      case "settings":
-        return <SettingsPage />
-      case "bonuses":
-        return <BonusesPage />
-      case "withdraw":
-        return (
-          <div className="p-6 text-center">
-            <h2 className="text-2xl font-bold text-red-500 mb-4">Withdrawal System</h2>
-            <p className="text-gray-400">Withdrawal functionality coming soon...</p>
-          </div>
-        )
-      case "rewards":
-        return (
-          <div className="p-6 text-center">
-            <h2 className="text-2xl font-bold text-red-500 mb-4">Rewards Program</h2>
-            <p className="text-gray-400">Rewards system coming soon...</p>
-          </div>
-        )
+        return <SportsBetting userBalance={userBalance} onBalanceChange={setUserBalance} />
       default:
-        return <Dashboard userBalance={user?.balance || 0} />
+        return <Dashboard userBalance={userBalance} />
     }
   }
 
   const handleLogout = () => {
-    console.log("Logout clicked")
-    logout()
+    setIsLoggedIn(false)
     setConnectedWallet(null)
     setActiveSection("dashboard")
   }
 
-  const handleSectionChange = (section: string) => {
-    console.log("Section change requested:", section)
-    setActiveSection(section)
+  if (!isLoggedIn) {
+    return <LoginPage onLogin={setIsLoggedIn} />
   }
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="h-16 w-16 rounded-lg bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center border border-red-500/30 mx-auto animate-pulse">
-            <Skull className="h-10 w-10 text-white" />
-          </div>
-          <p className="text-red-400">Loading Red Syndicate...</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (!user) {
-    console.log("No user found, showing auth page")
-    return <AuthPage />
-  }
-
-  console.log("User authenticated, showing main app for:", user.username)
   return (
     <div className="min-h-screen bg-black">
       <SidebarProvider>
         <AppSidebar
           activeSection={activeSection}
-          setActiveSection={handleSectionChange}
+          setActiveSection={setActiveSection}
           connectedWallet={connectedWallet}
-          userBalance={user.balance}
+          userBalance={userBalance}
         />
         <SidebarInset>
           <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-red-900/20 bg-black/90 backdrop-blur-sm px-4">
@@ -146,8 +81,8 @@ function CasinoAppContent() {
 
             <div className="flex items-center gap-4">
               <div className="text-right">
-                <p className="text-sm text-gray-400">Welcome, {user.username}</p>
-                <p className="text-lg font-bold text-green-400">${user.balance.toFixed(2)}</p>
+                <p className="text-sm text-gray-400">Balance</p>
+                <p className="text-lg font-bold text-green-400">${userBalance.toFixed(2)}</p>
               </div>
               {connectedWallet && (
                 <div className="text-right">
@@ -174,13 +109,5 @@ function CasinoAppContent() {
         </SidebarInset>
       </SidebarProvider>
     </div>
-  )
-}
-
-export default function CasinoApp() {
-  return (
-    <AuthProvider>
-      <CasinoAppContent />
-    </AuthProvider>
   )
 }

@@ -27,7 +27,6 @@ import {
   Zap,
   Target,
 } from "lucide-react"
-import { useSidebar } from "@/components/ui/sidebar"
 
 const menuItems = [
   {
@@ -65,11 +64,6 @@ const menuItems = [
     icon: User,
     id: "profile",
   },
-  {
-    title: "Settings",
-    icon: Settings,
-    id: "settings",
-  },
 ]
 
 const quickActions = [
@@ -98,14 +92,6 @@ interface AppSidebarProps {
 }
 
 export function AppSidebar({ activeSection, setActiveSection, connectedWallet, userBalance }: AppSidebarProps) {
-  const { setOpenMobile } = useSidebar()
-
-  const handleMenuClick = (sectionId: string) => {
-    console.log("Sidebar menu clicked:", sectionId)
-    setActiveSection(sectionId)
-    setOpenMobile(false)
-  }
-
   return (
     <Sidebar className="border-r border-red-900/20 bg-black/95 backdrop-blur-sm">
       <SidebarHeader className="border-b border-red-900/20">
@@ -147,7 +133,7 @@ export function AppSidebar({ activeSection, setActiveSection, connectedWallet, u
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton
-                    onClick={() => handleMenuClick(item.id)}
+                    onClick={() => setActiveSection(item.id)}
                     isActive={activeSection === item.id}
                     className="text-gray-300 hover:text-white hover:bg-red-600/20 data-[active=true]:bg-red-600/30 data-[active=true]:text-red-400 border-l-2 border-transparent data-[active=true]:border-red-500"
                   >
@@ -172,7 +158,7 @@ export function AppSidebar({ activeSection, setActiveSection, connectedWallet, u
               {quickActions.map((item) => (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton
-                    onClick={() => handleMenuClick(item.id)}
+                    onClick={() => setActiveSection(item.id)}
                     className="text-gray-300 hover:text-white hover:bg-red-600/20"
                   >
                     <item.icon className="h-5 w-5" />
@@ -188,10 +174,7 @@ export function AppSidebar({ activeSection, setActiveSection, connectedWallet, u
       <SidebarFooter className="border-t border-red-900/20 bg-black/70">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              onClick={() => handleMenuClick("settings")}
-              className="text-gray-300 hover:text-white hover:bg-red-600/20"
-            >
+            <SidebarMenuButton className="text-gray-300 hover:text-white hover:bg-red-600/20">
               <Settings className="h-5 w-5" />
               <span className="font-medium">Settings</span>
             </SidebarMenuButton>
